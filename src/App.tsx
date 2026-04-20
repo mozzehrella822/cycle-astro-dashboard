@@ -604,9 +604,15 @@ export default function Dashboard() {
       messages: [{ role: 'user', content: userPrompt }],
     };
     if (mcpServers.length > 0) body.mcp_servers = mcpServers;
+    const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY || '';
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
       body: JSON.stringify(body),
     });
     const data = await res.json();
