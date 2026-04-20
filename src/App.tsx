@@ -475,8 +475,11 @@ export default function Dashboard() {
 
   const cycle = useMemo(() => {
     if (!data.lastPeriod || !data.trackingCycle) return null;
-    const [y, m, d] = data.lastPeriod.split('-').map(Number);
-    return getCyclePhase(new Date(y, m - 1, d), Number(data.cycleLength), Number(data.periodLength), today);
+    const parts = data.lastPeriod.split('-').map(Number);
+    if (parts.length !== 3 || parts.some(isNaN) || parts[0] < 1900 || parts[1] < 1 || parts[2] < 1) return null;
+    const [y, m, d] = parts;
+    try { return getCyclePhase(new Date(y, m - 1, d), Number(data.cycleLength), Number(data.periodLength), today); }
+    catch { return null; }
   }, [data.lastPeriod, data.cycleLength, data.periodLength, data.trackingCycle]);
 
   const pmsInsights = useMemo(() => {
@@ -510,8 +513,12 @@ export default function Dashboard() {
       const dayAspects = calculateAspects(transits, natalChart);
       let dayCycle = null;
       if (data.lastPeriod && data.trackingCycle) {
-        const [y, m, dd] = data.lastPeriod.split('-').map(Number);
-        dayCycle = getCyclePhase(new Date(y, m - 1, dd), Number(data.cycleLength), Number(data.periodLength), d);
+        const parts = data.lastPeriod.split('-').map(Number);
+        if (parts.length === 3 && !parts.some(isNaN) && parts[0] >= 1900 && parts[1] >= 1 && parts[2] >= 1) {
+          const [y, m, dd] = parts;
+          try { dayCycle = getCyclePhase(new Date(y, m - 1, dd), Number(data.cycleLength), Number(data.periodLength), d); }
+          catch { dayCycle = null; }
+        }
       }
       // Score the day: harmonious aspects (+), tight hard aspects (-), cycle energy
       let score = 50;
